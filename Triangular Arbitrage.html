@@ -5,6 +5,12 @@
         width: 20px;
         height: 20px;
     }
+    
+    table#finTable,table#finTable td {
+        border-collapse: collapse;
+        border: 1px solid black;
+    }
+
 </style>
   <title>Binance Triangular Arbitrage Scanner</title>
   <meta charset="utf-8">
@@ -31,7 +37,7 @@
         <table class="table table-borderless">
         <tbody>
         <tr><td><h6>Scan(On/Off):</h6></td><td> <input onchange="u4();" class="col-sm-4" type="checkbox" id="par5"></td></tr>
-        <tr><td><h6>Show Only(rows):</h6></td><td> <input class="col-sm-4" onchange="u2();" type="text" id="par1" value="50"></td></tr>
+        <tr><td><h6>Show Only(rows):</h6></td><td> <input class="col-sm-4" type="text" id="par1" value="20"></td></tr>
         <tr><td><h6>Refresh Every(min):</h6></td><td> <input class="col-sm-4" onchange="u3();" type="text" id="par2" value="5"></td></tr>
         <tr><td><h6>Alerts(On/Off):</h6></td><td> <input class="col-sm-4" type="checkbox" id="par3" checked></td></tr>
         <tr><td><h6>Alert above(%):</h6></td><td> <input class="col-sm-4" type="text" id="par4" value="0.5"></td></tr>
@@ -55,7 +61,7 @@
         <br>
         <!---->    
      <div id="tartbit" class=" container row">
-        <table class="table table-bordered table-hover">
+        <table id="finTable" class="table table-bordered table-hover">
         <thead class="thead-dark">
           <tr>
             <th>#S.No</th>
@@ -87,13 +93,10 @@
 <script>
     
     //Global Variables
-    var gv_timer=300000,gv_count=50,scanStatus;
+    var gv_timer=300000,gv_count=0,scanStatus;
     var alert1 = document.getElementById("myAudio");
     
     
-    function u2(){
-        gv_count = parseInt(document.getElementById("par1").value);
-    }
                             
     function u3(){
         var lvref = Math.abs(parseInt(document.getElementById("par2").value));
@@ -182,11 +185,11 @@
                               if(parseFloat(gv_resp[lv1[l]]["bidPrice"])){
                                   if(lv1[l].substring(0,gv_sym[i].length) == gv_sym[i]){
                                      lv_calc1 = parseFloat(gv_resp[lv1[l]]["bidPrice"]);
-                                     lv_str1 = gv_sym[i] +  '->' + lv1[l] + "['bidP']" + '->';
+                                     lv_str1 = gv_sym[i] +  '->' + lv1[l] + "['bidP']['" + gv_resp[lv1[l]]["bidPrice"] + "']" + '->' + gv_sym[j] + '<br/>';
                                   }
                                   else{
                                      lv_calc1 = parseFloat(1/gv_resp[lv1[l]]["askPrice"]);
-                                      lv_str1 = gv_sym[i] +  '->' + lv1[l] + "['askP']" + '->';
+                                      lv_str1 = gv_sym[i] +  '->' + lv1[l] + "['askP']['" + gv_resp[lv1[l]]["askPrice"] + "']" + '->' + gv_sym[j] + '<br/>';
                                   }
                               
                               for(m=0;l<lv2.length;l++){
@@ -196,11 +199,11 @@
                                     if(parseFloat(gv_resp[lv2[m]]["bidPrice"])){
                                     if(lv2[m].substring(0,gv_sym[j].length) == gv_sym[j]){
                                         lv_calc2 = lv_calc1*parseFloat(gv_resp[lv2[m]]["bidPrice"]);
-                                        lv_str2  = lv_str1 + gv_sym[j] +  '->' + lv2[m] + "['bidP']" +  '->';
+                                        lv_str2  = lv_str1 + gv_sym[j] +  '->' + lv2[m] + "['bidP']['" + gv_resp[lv2[m]]["bidPrice"] + "']" +  '->' + gv_sym[k] + '<br/>';
                                       }
                                     else{
                                         lv_calc2 = parseFloat(lv_calc1/gv_resp[lv2[m]]["askPrice"]);
-                                        lv_str2  = lv_str1 + gv_sym[j] +  '->' + lv2[m] + "['askP']" +  '->';
+                                        lv_str2  = lv_str1 + gv_sym[j] +  '->' + lv2[m] + "['askP']['" + gv_resp[lv2[m]]["askPrice"] + "']" +  '->' + gv_sym[k] + '<br/>';
                                     }
                                   
                                     for(n=0;l<lv3.length;l++){
@@ -210,11 +213,11 @@
                                         if(parseFloat(gv_resp[lv3[n]]["bidPrice"])){
                                         if(lv3[n].substring(0,gv_sym[k].length) == gv_sym[k]){
                                             lv_calc3 = lv_calc2*parseFloat(gv_resp[lv3[n]]["bidPrice"]);
-                                            lv_str3  = lv_str2 + gv_sym[k] +  '->' + lv3[n] + "['bidP']";
+                                            lv_str3  = lv_str2 + gv_sym[k] +  '->' + lv3[n] + "['bidP']['" + gv_resp[lv3[n]]["bidPrice"] + "']" + '->' +  gv_sym[i] ;
                                           }
                                         else{
                                             lv_calc3 = parseFloat(lv_calc2/gv_resp[lv3[n]]["askPrice"]);
-                                            lv_str3 = lv_str2 + gv_sym[k] +  '->' + lv3[n] + "['askP']";
+                                            lv_str3 = lv_str2 + gv_sym[k] +  '->' + lv3[n] + "['askP']['" + gv_resp[lv3[n]]["askPrice"] + "']" + '->' +  gv_sym[i];
                                         }
                                         
                                         //Update gv_final JSON
@@ -241,7 +244,10 @@
 
         //Empty existing rows
         $("#tartbit tbody").html("");
-
+        
+        //Get Max Rows
+        gv_count = parseInt(document.getElementById("par1").value);
+        
         //Add new rows
         var lv_sno=0;
         for(i=0;i<=gv_count-1;i++){
